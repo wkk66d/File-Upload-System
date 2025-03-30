@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IP封禁管理</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>IP封禁管理</h2>
+        
+        <!-- 添加封禁表单 -->
+        <form method="POST" action="/admin/ban-ip" class="mb-4">
+            <div class="row">
+                <div class="col-4">
+                    <input type="text" name="ip" placeholder="输入IP地址" class="form-control" required>
+                </div>
+                <div class="col-4">
+                    <input type="text" name="reason" placeholder="封禁原因" class="form-control">
+                </div>
+                <div class="col-4">
+                    <button type="submit" class="btn btn-danger">封禁IP</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- IP列表 -->
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>IP地址</th>
+                    <th>封禁时间</th>
+                    <th>原因</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ip, ban_time, reason in ips %}
+                <tr>
+                    <td>{{ ip }}</td>
+                    <td>{{ ban_time }}</td>
+                    <td>{{ reason or '-' }}</td>
+                    <td>
+                        <a href="/admin/unban-ip/{{ ip }}" class="btn btn-sm btn-success">
+                            解封
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

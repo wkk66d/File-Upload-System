@@ -1,0 +1,184 @@
+<!-- templates/admin_files.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin File Management</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --success-color: #22c55e;
+            --danger-color: #ef4444;
+            --background-color: #f8fafc;
+        }
+
+        body {
+            background: var(--background-color);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .admin-file-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        .user-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .storage-progress {
+            height: 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: white;
+            transition: width 0.6s ease;
+        }
+
+        .file-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 0.75rem;
+        }
+
+        .file-table thead th {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            border: none;
+        }
+
+        .file-table tbody tr {
+            background: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-radius: 0.5rem;
+        }
+
+        .file-table tbody tr:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-top: 2px solid var(--background-color);
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            background: #e0e7ff;
+        }
+
+        .file-icon i {
+            color: var(--primary-color);
+            font-size: 1.25rem;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: end;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-file-container">
+        <!-- 用户信息头部 -->
+        <div class="user-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-user-shield me-2"></i>{{ username }}</h2>
+                    <div class="d-flex align-items-center gap-3 mt-2">
+                        <div>
+                            <small>Used: {{ (used/1024)|round(2) }}% KB</small>
+                            <small>Total: {{ (max_size/1024)|round(2) }}% KB</small>
+                        </div>
+                        <div class="storage-progress" style="width: 200px;">
+                            <div class="progress-bar" 
+                                 style="width: {{ (used/max_size * 100)|round(1) }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <a href="/admin/dashboard" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>返回
+                </a>
+            </div>
+        </div>
+
+        <!-- 文件列表 -->
+        <table class="file-table">
+            <thead>
+                <tr>
+                    <th style="border-radius: 0.5rem 0 0 0.5rem;">文件名</th>
+                    <th>大小</th>
+                    <th>上传时间</th>
+                    <th style="border-radius: 0 0.5rem 0.5rem 0;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="file-icon">
+                                <i class="fas 
+                                    {% if '.pdf' in file[2] %}fa-file-pdf
+                                    {% elif '.doc' in file[2] %}fa-file-word
+                                    {% elif '.xls' in file[2] %}fa-file-excel
+                                    {% elif '.zip' in file[2] %}fa-file-archive
+                                    {% elif '.jpg' in file[2] %}fa-file-image
+                                    {% else %}fa-file{% endif %}">
+                                </i>
+                            </div>
+                            <span class="file-name">{{ file[2] }}</span>
+                        </div>
+                    </td>
+                    <td>{{ (file[3]/1024)|round(2) }} KB</td>
+                    <td>{{ file[4] }}</td>
+                    <td>
+                        <div class="file-actions">
+                            <a href="/download/{{ file[0] }}" class="btn btn-sm btn-success">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <a href="/delete/{{ file[0] }}" class="btn btn-sm btn-danger"
+                               onclick="return confirm('确认删除该文件？')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">
+                        <i class="fas fa-folder-open fa-2x mb-2"></i>
+                        <p>暂无文件</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

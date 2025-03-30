@@ -1,0 +1,57 @@
+<!-- templates/welcome.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8fafc;
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .welcome-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .welcome-icon {
+            font-size: 4rem;
+            color: #16a34a;
+            margin-bottom: 1.5rem;
+            animation: bounce 1s;
+        }
+        .admin-link {
+            display: block;
+            margin-top: 2rem;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-card">
+        <div class="welcome-icon">🎉</div>
+        <h1>Welcome, {{ username }}!</h1>
+        <p class="text-muted">You are successfully logged in</p>
+        
+        <a href="/files" class="btn btn-primary mt-3">File Manager</a>
+
+        {% if session.get('is_admin') %}
+            <a href="/admin/dashboard" class="btn btn-primary mt-3">Admin Dashboard</a>
+            <a href="/admin/banned-ips" class="btn btn-primary mt-3">Ban IP</a>
+        {% endif %}
+        <a href="/change-password" class="btn btn-primary mt-3">Change password</a>
+        <a href="/logout" class="btn btn-outline-danger mt-3">Logout</a>
+    </div>
+</body>
+</html>

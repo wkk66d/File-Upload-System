@@ -1,0 +1,151 @@
+<!-- templates/login.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth System</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --hover-color: #1d4ed8;
+        }
+        body {
+            background: #f8fafc;
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .auth-card {
+            width: min(90%, 400px);
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-in;
+        }
+        .auth-header {
+            background: var(--primary-color);
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+        .auth-form {
+            padding: 2rem;
+        }
+        .form-control {
+            height: 48px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 0 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            height: 48px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: var(--hover-color);
+        }
+        .switch-link {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-weight: 500;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        <div class="auth-header">
+            <h3 id="form-title">Welcome Back</h3>
+        </div>
+        
+        <div class="auth-form" id="login-form">
+            <form id="loginForm">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="loginUsername" 
+                           placeholder="Username" required autocomplete="username">
+                </div>
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="loginPassword" 
+                           placeholder="Password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Sign In</button>
+            </form>
+            <div class="text-center mt-3">
+                New here? <span class="switch-link" onclick="showRegister()">Create account</span>
+            </div>
+        </div>
+
+        <div class="auth-form" id="register-form" style="display: none;">
+            <form id="registerForm">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="regUsername" 
+                           placeholder="Username" required autocomplete="username">
+                </div>
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="regPassword" 
+                           placeholder="Password" required autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+            </form>
+            <div class="text-center mt-3">
+                Already have an account? <span class="switch-link" onclick="showLogin()">Sign in</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleForms(showId, title) {
+            document.querySelectorAll('.auth-form').forEach(form => {
+                form.style.display = form.id === showId ? 'block' : 'none';
+            });
+            document.getElementById('form-title').textContent = title;
+        }
+
+        function showRegister() { toggleForms('register-form', 'Create Account'); }
+        function showLogin() { toggleForms('login-form', 'Welcome Back'); }
+
+        async function handleFormSubmit(url, usernameId, passwordId) {
+            const username = document.getElementById(usernameId).value;
+            const password = document.getElementById(passwordId).value;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const result = await response.json();
+                alert(result.message);
+                if (result.success) window.location.reload();
+            } catch (error) {
+                alert('Network error');
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', e => {
+            e.preventDefault();
+            handleFormSubmit('/login', 'loginUsername', 'loginPassword');
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', e => {
+            e.preventDefault();
+            handleFormSubmit('/register', 'regUsername', 'regPassword');
+        });
+    </script>
+</body>
+</html>

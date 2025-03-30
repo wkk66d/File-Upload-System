@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Manager</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --success-color: #22c55e;
+            --danger-color: #ef4444;
+            --background-color: #f8fafc;
+        }
+
+        body {
+            background: var(--background-color);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .file-manager-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        .storage-progress {
+            height: 28px;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #e2e8f0;
+            position: relative;
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, var(--primary-color), #4f46e5);
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .progress-label {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: 600;
+            mix-blend-mode: difference;
+        }
+
+        .upload-container {
+            border: 2px dashed #cbd5e1;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+            margin-bottom: 2rem;
+        }
+
+        .upload-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .custom-upload-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .custom-upload-btn:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        .custom-upload-submit {
+            background: var(--success-color);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .custom-upload-submit:hover {
+            background: #16a34a;
+            transform: translateY(-2px);
+        }
+
+        .custom-upload-submit:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        #fileFeedback {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .file-list {
+            margin-top: 2rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            background: white;
+            margin-bottom: 0.75rem;
+        }
+
+        .file-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            background: #e0e7ff;
+            margin-right: 1rem;
+        }
+
+        .file-icon i {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-meta {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-left: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .file-item {
+            animation: fadeIn 0.4s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="file-manager-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">📁 File Manager</h2>
+            <div class="text-end">
+                <div class="text-muted">
+                    <span>{{ (used/1024)|round(2) }} KB / {{ (max_size/1024)|round(2) }} KB</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="storage-progress mb-4">
+            <div class="progress-bar" 
+                 style="width: {{ (used/max_size * 100)|round(1) }}%">
+            </div>
+            <div class="progress-label">
+                {{ ((used/max_size) * 100)|round(1) }}%
+            </div>
+        </div>
+
+        <div class="upload-container">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div>
+                    <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                    <h5>Drag & Drop or Choose File</h5>
+                    <p class="text-muted">Maximum file size: {{ (max_size/1024)|round(2) }} KB</p>
+                </div>
+                
+                <div class="upload-controls">
+                    <input type="file" id="fileInput" name="file" hidden>
+                    <label for="fileInput" class="custom-upload-btn">
+                        <i class="fas fa-folder-open me-2"></i>Choose File
+                    </label>
+                    <button type="submit" class="custom-upload-submit">
+                        <i class="fas fa-cloud-upload-alt me-2"></i>Upload Now
+                    </button>
+                </div>
+                
+                <div id="fileFeedback"></div>
+            </form>
+        </div>
+
+        <div class="file-list">
+            {% for file in files %}
+            <div class="file-item">
+                <div class="file-icon">
+                    <i class="fas 
+                        {% if '.pdf' in file[2] %}fa-file-pdf
+                        {% elif '.doc' in file[2] or '.docx' in file[2] %}fa-file-word
+                        {% elif '.xls' in file[2] or '.xlsx' in file[2] %}fa-file-excel
+                        {% elif '.zip' in file[2] or '.rar' in file[2] %}fa-file-archive
+                        {% elif '.jpg' in file[2] or '.png' in file[2] %}fa-file-image
+                        {% else %}fa-file{% endif %}"></i>
+                </div>
+                <div class="file-info">
+                    <div class="file-name">{{ file[2] }}</div>
+                    <div class="file-meta">
+                        {{ (file[4]/1024)|round(2) }} KB • 
+                        {{ file[5][:16] }}
+                    </div>
+                </div>
+                <div class="file-actions">
+                    <a href="/download/{{ file[0] }}" class="btn btn-success rounded-pill">
+                        <i class="fas fa-download me-2"></i>Download
+                    </a>
+                    <a href="/delete/{{ file[0] }}" class="btn btn-danger rounded-pill"
+                       onclick="return confirm('Are you sure to delete this file?')">
+                        <i class="fas fa-trash me-2"></i>Delete
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-folder-open fa-3x mb-3"></i>
+                <p>No files uploaded yet</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // 文件选择处理
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const feedback = document.getElementById('fileFeedback');
+            if(this.files.length > 0) {
+                const file = this.files[0];
+                feedback.innerHTML = `
+                    <span class="text-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Selected: ${file.name} (${(file.size/1024).toFixed(2)} KB)
+                    </span>
+                `;
+            }
+        });
+
+        // 拖放功能
+        const dropZone = document.querySelector('.upload-container');
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--primary-color)';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '#cbd5e1';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if(files.length > 0) {
+                document.getElementById('fileInput').files = files;
+                const event = new Event('change');
+                document.getElementById('fileInput').dispatchEvent(event);
+            }
+        });
+
+        // 上传处理
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('fileInput');
+            const submitBtn = document.querySelector('.custom-upload-submit');
+            const feedback = document.getElementById('fileFeedback');
+
+            if(!fileInput.files || fileInput.files.length === 0) {
+                feedback.innerHTML = `
+                    <span class="text-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Please select a file first!
+                    </span>
+                `;
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+
+            try {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if(result.success) {
+                    feedback.innerHTML = `
+                        <span class="text-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            File uploaded successfully!
+                        </span>
+                    `;
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    feedback.innerHTML = `
+                        <span class="text-danger">
+                            <i class="fas fa-times-circle me-2"></i>
+                            Upload failed: ${result.message}
+                        </span>
+                    `;
+                }
+            } catch (error) {
+                feedback.innerHTML = `
+                    <span class="text-danger">
+                        <i class="fas fa-times-circle me-2"></i>
+                        Network error: ${error.message}
+                    </span>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-cloud-upload-alt me-2"></i>Upload Now';
+                fileInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
